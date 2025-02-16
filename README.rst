@@ -28,9 +28,7 @@ For now, available estimators include standard classification and preprocessing 
 Installation
 ============
 
-===========================
 ⚠ WARNING ⚠
-===========================
 
 Installing the module in demo mode can take a long time because the entire 20newsgroups dataset is loaded as demo data.
 
