@@ -50,7 +50,7 @@ class ProjectTask(models.Model):
                 'name': parsed_email['subject'],
                 'description': parsed_email['body'],
                 'tag_ids': [Command.set([self.env.ref(f'supervised_learning.{target_name.replace(".", "_")}').id])],
-                'project_id': self.env.ref('project.project_project_1'),
+                'project_id': self.env.ref('project.project_project_1').id,
             })
 
         tasks = self.env['project.task'].with_context(_import_current_module='supervised_learning', noupdate=True).create(records)
