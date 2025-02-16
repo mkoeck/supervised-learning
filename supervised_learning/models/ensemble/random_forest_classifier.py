@@ -51,7 +51,7 @@ class RandomForestClassifierEstimator(models.Model):
             bootstrap=self.bootstrap
         )
 
-        if self.dataset_id.is_multilabel:
+        if self.pipeline_id.is_multilabel:
             clf = MultiOutputClassifier(clf)
 
         return clf

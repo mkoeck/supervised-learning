@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Dataset list View -->
-    <record id="view_supervised_learning_dataset_list" model="ir.ui.view">
-        <field name="name">supervised.learning.dataset.list</field>
-        <field name="model">supervised.learning.dataset</field>
+    <!-- Pipeline list View -->
+    <record id="view_supervised_learning_pipeline_list" model="ir.ui.view">
+        <field name="name">supervised.learning.pipeline.list</field>
+        <field name="model">supervised.learning.pipeline</field>
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
@@ -12,10 +12,10 @@
         </field>
     </record>
 
-    <!-- Dataset Form View -->
-    <record id="view_supervised_learning_dataset_form" model="ir.ui.view">
-        <field name="name">supervised.learning.dataset.form</field>
-        <field name="model">supervised.learning.dataset</field>
+    <!-- Pipeline Form View -->
+    <record id="view_supervised_learning_pipeline_form" model="ir.ui.view">
+        <field name="name">supervised.learning.pipeline.form</field>
+        <field name="model">supervised.learning.pipeline</field>
         <field name="arch" type="xml">
             <form>
                 <header>
@@ -122,10 +122,10 @@
         </field>
     </record>
 
-    <!-- Dataset Action -->
-    <record id="action_supervised_learning_dataset" model="ir.actions.act_window">
-        <field name="name">ML Datasets</field>
-        <field name="res_model">supervised.learning.dataset</field>
+    <!-- Pipeline Action -->
+    <record id="action_supervised_learning_pipeline" model="ir.actions.act_window">
+        <field name="name">ML Pipelines</field>
+        <field name="res_model">supervised.learning.pipeline</field>
         <field name="view_mode">list,form</field>
     </record>
 
@@ -138,5 +138,5 @@
 
     <!-- Menu Items -->
     <menuitem id="menu_supervised_learning_root" name="Machine Learning" sequence="10"/>
-    <menuitem id="menu_supervised_learning_dataset" name="Datasets" parent="menu_supervised_learning_root" action="action_supervised_learning_dataset" sequence="10"/>
+    <menuitem id="menu_supervised_learning_pipeline" name="Pipelines" parent="menu_supervised_learning_root" action="action_supervised_learning_pipeline" sequence="10"/>
 </odoo>

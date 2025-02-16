@@ -12,10 +12,10 @@ class Estimator(models.Model):
     _order = "sequence"
     
     name = fields.Char('Name')
-    dataset_id = fields.Many2one("supervised.learning.dataset", string="Dataset")
-    model_id = fields.Many2one(related='dataset_id.model_id')
-    dependent_variable_id = fields.Many2one(related='dataset_id.dependent_variable_id')
-    independent_variable_ids = fields.Many2many(related='dataset_id.independent_variable_ids')
+    pipeline_id = fields.Many2one("supervised.learning.pipeline", string="Pipeline")
+    model_id = fields.Many2one(related='pipeline_id.model_id')
+    dependent_variable_id = fields.Many2one(related='pipeline_id.dependent_variable_id')
+    independent_variable_ids = fields.Many2many(related='pipeline_id.independent_variable_ids')
     sequence = fields.Integer(string="Sequence")
     column_ids = fields.Many2many('ir.model.fields', string="Columns", 
         domain="[('id', 'in', independent_variable_ids)]", 
@@ -32,17 +32,17 @@ class Estimator(models.Model):
         precompute=True, store=True, readonly=True)
 
     def write(self, vals):
-        all_in_draft = all(self.mapped(lambda record: record.dataset_id.state == 'draft'))
+        all_in_draft = all(self.mapped(lambda record: record.pipeline_id.state == 'draft'))
 
         if not all_in_draft:
             raise UserError(_('Writing to this field is not supported while not in state draft. Please reset to draft before continuing. Note that this means you will lose your training progress.'))
 
         return super().write(vals)
 
-    @api.depends('column_ids', 'dataset_id.variable_ids')
+    @api.depends('column_ids', 'pipeline_id.variable_ids')
     def _compute_unused_variable_ids(self):
         for record in self:
-            record.unused_variable_ids = record.dataset_id.independent_variable_ids - record.column_ids
+            record.unused_variable_ids = record.pipeline_id.independent_variable_ids - record.column_ids
 
     def _get_estimator(self):
         self.ensure_one()

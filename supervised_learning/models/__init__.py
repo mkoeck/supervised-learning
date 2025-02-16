@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import dataset
+from . import pipeline
 from . import estimator
 from . import preprocessing
 from . import ensemble

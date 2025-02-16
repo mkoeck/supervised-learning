@@ -1,7 +1,7 @@
 from odoo import models, api, fields, _
 from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline as SklearnPipeline
 from typing import Optional
 import pandas as pd
 from sklearn.utils import estimator_html_repr
@@ -15,9 +15,9 @@ from sklearn.preprocessing import MultiLabelBinarizer
 # TODO:
 # introduce training via ir.cron, with regular retraining
 
-class Dataset(models.Model):
-    _name = "supervised.learning.dataset"
-    _description = "Supervised Learning Dataset"
+class Pipeline(models.Model):
+    _name = "supervised.learning.pipeline"
+    _description = "Supervised Learning Pipeline"
     
     name = fields.Char(string="Name")
     model_id = fields.Many2one("ir.model", string="Model")
@@ -39,7 +39,7 @@ class Dataset(models.Model):
     )
 
     variable_ids = fields.Many2many('ir.model.fields', compute='_compute_variable_ids')
-    estimator_ids = fields.One2many("supervised.learning.estimator", "dataset_id", string="Steps")
+    estimator_ids = fields.One2many("supervised.learning.estimator", "pipeline_id", string="Steps")
 
     # performance metrics
     precision = fields.Float(readonly=True)
@@ -75,10 +75,10 @@ class Dataset(models.Model):
         for record in self:
 
             code = f"""
-dataset = env['supervised.learning.dataset'].browse({record.id})
-predictions = dataset.predict(records)
+pipeline = env['supervised.learning.pipeline'].browse({record.id})
+predictions = pipeline.predict(records)
 for i, rec in enumerate(records):
-    rec[dataset.dependent_variable_id.name] = predictions[i]
+    rec[pipeline.dependent_variable_id.name] = predictions[i]
             """
 
             self.action_id = self.env['ir.actions.server'].create({
@@ -106,7 +106,7 @@ for i, rec in enumerate(records):
         pipeline = self._get_pipeline()
 
         if self.state == 'draft' or not pipeline:
-            raise UserError(_("Can only make predictions on trained datasets"))
+            raise UserError(_("Can only make predictions on trained pipelines"))
 
         dataset = self._get_dataset(domain=[('id', 'in', records.ids)])
 
@@ -140,7 +140,7 @@ for i, rec in enumerate(records):
         """
         Creates a pandas dataframe according to the specifications. Note that by using kwargs,
         additional parameters can be passed to search_read. This is especially useful, to pass a custom domain,
-        to create a dataset for specific records, instead of all of them. An example can be found in the predict method.
+        to create a pipeline for specific records, instead of all of them. An example can be found in the predict method.
         """
         self.ensure_one()
         model = self.env[self.model_id.model]
@@ -150,11 +150,11 @@ for i, rec in enumerate(records):
         data = model.search_read(domain, fields, **kwargs)
         df = pd.DataFrame(data)
         df.index = df.pop('id')
-        return self._preprocess_dataset(df)
+        return self._preprocess_pipeline(df)
 
-    def _preprocess_dataset(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _preprocess_pipeline(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        This method does some preprocessing on the dataset that should be done before applying the pipeline.
+        This method does some preprocessing on the pipeline that should be done before applying the pipeline.
         Note that most of the preprocessing should be done in the pipeline itself, but some of it is done here because it can't be done in the pipeline.
         """
         df = self._replace_null_values(df)
@@ -162,7 +162,7 @@ for i, rec in enumerate(records):
     
     def _replace_null_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        This method preprocesses a dataset created by _get_dataset to get from an 'odoo' dataset to a 'sklearn' dataset.
+        This method preprocesses a pipeline created by _get_pipeline to get from an 'odoo' pipeline to a 'sklearn' pipeline.
         Odoo largely uses False to represent missing values, while sklearn requires NA.
         """
         for variable in self.variable_ids:
@@ -185,7 +185,7 @@ for i, rec in enumerate(records):
             if not pipeline:
                 record.pipeline = False
             else:
-                pipeline = Pipeline(pipeline)
+                pipeline = SklearnPipeline(pipeline)
                 record._set_pipeline(pipeline)
 
     def _set_pipeline(self, pipeline):
@@ -193,7 +193,7 @@ for i, rec in enumerate(records):
         pickled_pipeline = pickle.dumps(pipeline)
         self.pipeline = base64.b64encode(pickled_pipeline)
 
-    def _get_pipeline(self) -> Optional[Pipeline]:
+    def _get_pipeline(self) -> Optional[SklearnPipeline]:
         self.ensure_one()
         if not self.pipeline:
             return None
