@@ -9,7 +9,7 @@ This module provides tools for managing machine learning pipelines in Odoo.
     'license': 'LGPL-3',
     'category': 'Technical',
     'version': '18.0.1.0.0',
-    'depends': ['base', 'helpdesk'],
+    'depends': ['base', 'project'],
     'data': [
         'security/ir.model.access.csv',
         'views/pipeline_views.xml',

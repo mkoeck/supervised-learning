@@ -24,8 +24,8 @@ def parse_email(text):
     
     return email_info
 
-class HelpdeskTicket(models.Model):
-    _inherit = 'helpdesk.ticket'
+class ProjectTask(models.Model):
+    _inherit = 'project.task'
 
     def _post_load_demo_data(self):
         data = fetch_20newsgroups(
@@ -40,18 +40,17 @@ class HelpdeskTicket(models.Model):
             } for name in data.target_names
         ]
 
-        tag_ids = self.env['helpdesk.tag'].with_context(_import_current_module='supervised_learning', noupdate=True).create(tags)
+        tag_ids = self.env['project.tags'].with_context(_import_current_module='supervised_learning', noupdate=True).create(tags)
 
         for i, (record, target) in enumerate(zip(data.data, data.target)):
             target_name = data.target_names[target]
             parsed_email = parse_email(record)
             records.append({
-                'id': f'helpdesk_ticket_{i}',
+                'id': f'project_task_{i}',
                 'name': parsed_email['subject'],
                 'description': parsed_email['body'],
                 'tag_ids': [Command.set([self.env.ref(f'supervised_learning.{target_name.replace(".", "_")}').id])],
-                'stage_id': self.env.ref('helpdesk.stage_new').id,
-                'team_id': self.env.ref('helpdesk.helpdesk_team1').id,
+                'project_id': self.env.ref('project.project_project_1'),
             })
 
-        tickets = self.env['helpdesk.ticket'].with_context(_import_current_module='supervised_learning', noupdate=True).create(records)
+        tasks = self.env['project.task'].with_context(_import_current_module='supervised_learning', noupdate=True).create(records)
