@@ -8,10 +8,10 @@ This module is currently in **prototype** stage, and additional estimators and f
 
 **Key Features:**
 
-* - **Machine Learning Pipelines**: Define and manage machine learning workflows directly within Odoo.
-* - **Extensibility**: Easily add new models, preprocessing steps, and feature extraction methods.
-* - **Integration with Odoo Models**: Train models using existing Odoo data and apply predictions within business workflows.
-* - **Support for Multiple Estimators**: Provides a flexible framework to incorporate various machine learning algorithms.
+- **Machine Learning Pipelines**: Define and manage machine learning workflows directly within Odoo.
+- **Extensibility**: Easily add new models, preprocessing steps, and feature extraction methods.
+- **Integration with Odoo Models**: Train models using existing Odoo data and apply predictions within business workflows.
+- **Support for Multiple Estimators**: Provides a flexible framework to incorporate various machine learning algorithms.
 
 **Table of contents**
 
@@ -30,32 +30,39 @@ Installation
 
 To install this module:
 
-#. 1. Ensure dependencies are installed:
+1. Ensure dependencies are installed:
+   
    ```
    pip install -r requirements.txt
    ```
-#. 2. Install the module in Odoo:
-   * - Go to **Apps** and search for "Supervised Learning"
-   * - Click **Install**
+
+2. Install the module in Odoo:
+   
+   - Go to **Apps** and search for "Supervised Learning"
+   - Click **Install**
 
 Configuration
 =============
 
-#. 1. Define a **Dataset**:
+1. Define a **Dataset**:
+   
    - Select an Odoo model as the data source.
    - Choose dependent and independent variables.
    - Configure preprocessing steps and feature extraction if needed.
 
-#. 2. Add **Estimators**:
-   * - Choose an algorithm (e.g., Random Forest, TF-IDF Vectorizer).
-   * - Configure hyperparameters.
+2. Add **Estimators**:
+   
+   - Choose an algorithm (e.g., Random Forest, TF-IDF Vectorizer).
+   - Configure hyperparameters.
 
-#. 3. Train the Model:
-   * - Click **Train Model** to initiate training.
-   * - Review model performance metrics (Precision, Recall, F1-score).
+3. Train the Model:
+   
+   - Click **Train Model** to initiate training.
+   - Review model performance metrics (Precision, Recall, F1-score).
 
-#. 4. Apply Predictions:
-   * - Use the trained model to generate predictions on new records.
+4. Apply Predictions:
+   
+   - Use the trained model to generate predictions on new records.
 
 Changelog
 =========
@@ -63,9 +70,9 @@ Changelog
 Next
 ~~~~
 
-* - Addition of more machine learning estimators
-* - Improved dataset handling
-* - Automated training and retraining options
+- Addition of more machine learning estimators
+- Improved dataset handling
+- Automated training and retraining options
 
 Bug Tracker
 ===========
