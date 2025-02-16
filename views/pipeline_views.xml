@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dataset list View -->
+    <record id="view_supervised_learning_dataset_list" model="ir.ui.view">
+        <field name="name">supervised.learning.dataset.list</field>
+        <field name="model">supervised.learning.dataset</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="model_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Dataset Form View -->
+    <record id="view_supervised_learning_dataset_form" model="ir.ui.view">
+        <field name="name">supervised.learning.dataset.form</field>
+        <field name="model">supervised.learning.dataset</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_run_pipeline" string="Train model" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <field name="action_id" invisible="1"/>
+                    <button name="create_action" string="Create Contextual Action" class="btn-primary" type="object" invisible="action_id != False"/>
+                    <button name="unlink_action" string="Remove Contextual Action" type="object" invisible="not action_id"/>
+                    <button name="action_reset_to_draft" string="Reset to draft" type="object" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="model_id" options="{'no_create': True, 'no_edit': True}"/>
+                        <field name="model_name" invisible="True"/>
+                        <field name="domain" widget="domain" options="{'model': 'model_name', 'in_dialog': True}" invisible="not model_name"/>
+                        <field name="dependent_variable_id" options="{'no_create': True, 'no_edit': True}"/>
+                        <field name="independent_variable_ids" widget="many2many_tags" options="{'no_create': True, 'no_edit': True}"/>
+                        <field name="pipeline"/>
+                    </group>
+                    <notebook>
+                        <page string="Pipeline estimators">
+                            <field name="estimator_ids">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="type"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Pipeline">
+                            <field name="pipeline_html"/>
+                        </page>
+                        <page string="Performance" invisible="state == 'draft'">
+                            <group>
+                                <field name="precision"/>
+                                <field name="recall"/>
+                                <field name="f1_score"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- estimator list View -->
+    <record id="view_supervised_learning_estimator_list" model="ir.ui.view">
+        <field name="name">supervised.learning.estimator.list</field>
+        <field name="model">supervised.learning.estimator</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="type"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- estimator Form View -->
+    <record id="view_supervised_learning_estimator_form" model="ir.ui.view">
+        <field name="name">supervised.learning.estimator.form</field>
+        <field name="model">supervised.learning.estimator</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="model" invisible="1"/>
+                            <field name="type"/>
+                            <field name="column_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Random Forest Classifier Parameters" invisible="type != 'random_forest_classifier'" colspan="2">
+                        <group>
+                            <field name="n_estimators"/>
+                            <field name="criterion"/>
+                            <field name="max_depth"/>
+                            <field name="min_samples_split"/>
+                            <field name="min_samples_split_pct"/>
+                            <field name="min_samples_leaf"/>
+                        </group>
+                        <group>
+                            <field name="min_samples_leaf_pct"/>
+                            <field name="min_weight_fraction_leaf"/>
+                            <field name="max_features"/>
+                            <field name="max_leaf_nodes"/>
+                            <field name="min_impurity_decrease"/>
+                            <field name="bootstrap"/>
+                        </group>
+                    </group>
+                    <group string="Tfidf Vectorizer Parameters" invisible="type != 'tfidf_vectorizer'" colspan="2">
+                        <group>
+                            <field name="lowercase"/>
+                            <field name="analyzer"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dataset Action -->
+    <record id="action_supervised_learning_dataset" model="ir.actions.act_window">
+        <field name="name">ML Datasets</field>
+        <field name="res_model">supervised.learning.dataset</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Pipeline estimator Action -->
+    <record id="action_supervised_learning_estimator" model="ir.actions.act_window">
+        <field name="name">Pipeline estimators</field>
+        <field name="res_model">supervised.learning.estimator</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_supervised_learning_root" name="Machine Learning" sequence="10"/>
+    <menuitem id="menu_supervised_learning_dataset" name="Datasets" parent="menu_supervised_learning_root" action="action_supervised_learning_dataset" sequence="10"/>
+</odoo>

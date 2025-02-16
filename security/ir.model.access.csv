@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_supervised_learning_pipeline_user,supervised.learning.dataset,model_supervised_learning_dataset,base.group_user,1,1,1,1
+supervised_learning.access_supervised_learning_estimator,access_supervised_learning_estimator,supervised_learning.model_supervised_learning_estimator,base.group_user,1,1,1,1
