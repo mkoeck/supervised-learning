@@ -28,10 +28,13 @@ For now, available estimators include standard classification and preprocessing 
 Installation
 ============
 
-.. warning::
-   Installing the module in demo mode can take a long time because the entire 20newsgroups dataset is loaded as demo data.
+===========================
+⚠ WARNING ⚠
+===========================
 
-   See the `scikit-learn documentation on the 20 Newsgroups dataset <https://scikit-learn.org/stable/datasets/real_world.html#the-20-newsgroups-text-dataset>`_ for more details.
+Installing the module in demo mode can take a long time because the entire 20newsgroups dataset is loaded as demo data.
+
+See the `scikit-learn documentation on the 20 Newsgroups dataset <https://scikit-learn.org/stable/datasets/real_world.html#the-20-newsgroups-text-dataset>`_ for more details.
 
 To install this module:
 
