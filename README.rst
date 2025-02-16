@@ -31,10 +31,10 @@ Installation
 To install this module:
 
 1. Ensure dependencies are installed:
-   
-   ```
-   pip install -r requirements.txt
-   ```
+
+   .. code-block:: bash
+
+      pip install -r requirements.txt
 
 2. Install the module in Odoo:
    
