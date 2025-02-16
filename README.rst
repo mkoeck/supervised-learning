@@ -68,7 +68,7 @@ Configuration
 
 4. Apply Predictions:
    
-   - Use the trained model to generate predictions on new records.
+   - By clicking **Create Contextual Action** you can add a server action to your chosen model (little cog icon). This server action lets you make predictions on your chosen model.
 
 Changelog
 =========
