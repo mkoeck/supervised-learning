@@ -1,2 +1,28 @@
 <odoo>
+    <record id="pipeline_1" model="supervised.learning.pipeline">
+        <field name="name">Predict tags using description</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="domain">[("description", "!=", False)]</field>
+        <field name="state">draft</field>
+        <field name="dependent_variable_id" ref="project.field_project_task__tag_ids"/>
+        <field name="independent_variable_ids" eval="[(6, 0, [ref('project.field_project_task__description')])]"/>
+    </record>
+
+    <record id="pipeline_1_estimator_1" model="supervised.learning.estimator">
+        <field name="name">Preprocessor</field>
+        <field name="type">tfidf_vectorizer</field>
+        <field name="lowercase">True</field>
+        <field name="max_df">0.5</field>
+        <field name="min_df">5</field>
+        <field name="column_ids" eval="[(6, 0, [ref('project.field_project_task__description')])]"/>
+        <field name="sequence">1</field>
+        <field name="pipeline_id" ref="pipeline_1"/>
+    </record>
+
+    <record id="pipeline_1_estimator_2" model="supervised.learning.estimator">
+        <field name="name">Predictor</field>
+        <field name="type">random_forest_classifier</field>
+        <field name="sequence">2</field>
+        <field name="pipeline_id" ref="pipeline_1"/>
+    </record>
 </odoo>
