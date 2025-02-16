@@ -12,6 +12,8 @@ class TfidfVectorizerEstimator(models.Model):
         ('char', 'Character'),
         ('char_wb', 'Character n-grams'),
     ], string="Analyzer", default='word')
+    max_df = fields.Float(default=1)
+    min_df = fields.Integer(default=1)
 
     def _get_estimator(self):
         self.ensure_one()
@@ -22,7 +24,7 @@ class TfidfVectorizerEstimator(models.Model):
                 # tf-idf vectorizer seems to expect a 1d array, so we have to pass the column name as a string, not a list
                 # if multiple columns are selected, the transformer will be applied to each column separately
                 transformers=[
-                    ('tfidf_vectorizer', TfidfVectorizer(lowercase=self.lowercase, analyzer=self.analyzer, max_df=0.5, min_df=5, stop_words='english'), column.name)
+                    ('tfidf_vectorizer', TfidfVectorizer(lowercase=self.lowercase, analyzer=self.analyzer, max_df=self.max_df, min_df=self.min_df, stop_words='english'), column.name)
                 for column in self.column_ids], remainder='passthrough'
             )
         

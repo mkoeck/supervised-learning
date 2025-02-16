@@ -113,6 +113,8 @@
                         <group>
                             <field name="lowercase"/>
                             <field name="analyzer"/>
+                            <field name="max_df"/>
+                            <field name="min_df"/>
                         </group>
                     </group>
                 </sheet>
