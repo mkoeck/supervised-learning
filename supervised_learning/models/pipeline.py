@@ -226,7 +226,8 @@ for i, rec in enumerate(records):
     def action_run_pipeline(self):
         for record in self:
             pipeline = record._get_pipeline()
-            data = record._get_dataset(domain=safe_eval(record.domain))
+            domain = record.domain or '[]'
+            data = record._get_dataset(domain=safe_eval(domain))
             
             # TODO: during training, we should not have any missing values in the dependent variable
             # given that the pipeline can not be applied to the dependent variable, we need to deal with missing values here
