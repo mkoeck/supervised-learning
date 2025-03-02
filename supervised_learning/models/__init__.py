@@ -7,3 +7,4 @@ from . import ensemble
 from . import feature_extraction
 from . import project_task
 from . import ir_model
+from . import aggregation_field

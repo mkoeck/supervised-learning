@@ -1,5 +1,5 @@
 from odoo import models, api, fields, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 from sklearn.pipeline import Pipeline as SklearnPipeline
 from typing import Optional
@@ -29,6 +29,7 @@ class Pipeline(models.Model):
     ], string="State", default='draft', required=True)
     independent_variable_ids = fields.Many2many(
         'ir.model.fields',
+        relation='sl_pipeline_independent_var_rel',
         domain="[('model_id', '=', model_id)]",
         string="Independent Variables"
     )
@@ -36,6 +37,33 @@ class Pipeline(models.Model):
         'ir.model.fields',
         domain="[('model_id', '=', model_id)]",
         string="Dependent Variable"
+    )
+
+    is_grouped = fields.Boolean('Group Data', default=False)
+
+    groupby_field_ids = fields.Many2many(
+        'ir.model.fields',
+        relation='sl_pipeline_groupby_fields_rel',
+        domain="[('model_id', '=', model_id)]",
+        string="Grouping Variables"
+    )
+
+    date_group_frequency = fields.Selection([
+        ('year_number', 'Year'),
+        ('quarter_number', 'Quarter'),
+        ('month_number', 'Month'),
+        ('iso_week_number', 'Calendar Week'),
+        ('day_of_year', 'Day of Year'),
+        ('day_of_month', 'Day of Month'),
+        ('day_of_week', 'Day of Week'),
+        ('hour_number', 'Hour Number'),
+        ('minute_number', 'Minute Number'),
+        ('second_number', 'Second Number')
+    ], default='day_of_year')
+
+    aggregation_field_ids = fields.One2many(
+        'supervised.learning.aggregation.field',
+        'pipeline_id',
     )
 
     variable_ids = fields.Many2many('ir.model.fields', compute='_compute_variable_ids')
@@ -68,8 +96,28 @@ class Pipeline(models.Model):
 
         return super().write(vals)
 
+    @api.constrains('is_grouped', 'variable_ids')
+    def _check_is_grouped_valid_variables(self):
+        for record in self:
+            if not record.is_grouped:
+                continue
+            
+            for variable in record.variable_ids:
+                is_aggregation_variable = variable in record.aggregation_field_ids.mapped('field_id')
+                is_grouping_variable = variable in record.groupby_field_ids
+                if not is_aggregation_variable and not is_grouping_variable:
+                    raise ValidationError(_('When using grouping, each variable must either be an aggregation or grouping variable. "%s" is neither', variable.name))
+
     def action_reset_to_draft(self):
         self.write({'state': 'draft'})
+
+    def action_export_dataset(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/supervised_learning/export/dataset/{self.id}",
+            "target": "download",
+        }
 
     def create_action(self):
         for record in self:
@@ -138,38 +186,98 @@ for i, rec in enumerate(records):
 
     def _get_dataset(self, **kwargs) -> pd.DataFrame:
         """
-        Creates a pandas dataframe according to the specifications. Note that by using kwargs,
-        additional parameters can be passed to search_read. This is especially useful, to pass a custom domain,
-        to create a pipeline for specific records, instead of all of them. An example can be found in the predict method.
+        Creates a pandas DataFrame according to specifications.
+        If `self.is_grouped` is False, uses search_read logic;
+        otherwise uses read_group logic.
         """
         self.ensure_one()
-        model = self.env[self.model_id.model]
-        fields = self.variable_ids.mapped('name')
-        
-        domain = kwargs.pop('domain', [])
-        data = model.search_read(domain, fields, **kwargs)
-        df = pd.DataFrame(data)
-        df.index = df.pop('id')
+        domain = kwargs.pop("domain", [])
+
+        if self.is_grouped:
+            df = self._get_dataset_grouped(domain, **kwargs)
+        else:
+            df = self._get_dataset_unaggregated(domain, **kwargs)
+
+        # Preprocess before returning
         return self._preprocess_pipeline(df)
+
+    def _get_dataset_unaggregated(self, domain, **kwargs) -> pd.DataFrame:
+        """Return a DataFrame via a simple search_read."""
+        model = self.env[self.model_id.model]
+        fields = self.variable_ids.mapped("name")
+        data = model.search_read(domain, fields, **kwargs)
+        return pd.DataFrame(data, columns=pd.Series(fields))
+
+
+    def _get_dataset_grouped(self, domain, **kwargs) -> pd.DataFrame:
+        """Return a DataFrame via read_group for grouped logic."""
+        model = self.env[self.model_id.model]
+        freq = self.date_group_frequency
+        # Helper to detect date/datetime fields
+        is_date_field = lambda f: f.ttype in ["date", "datetime"]
+
+        # Identify fields that should be grouped by date/datetime frequency
+        grouped_date_fields = {
+            field.name for field in self.groupby_field_ids if is_date_field(field)
+        }
+
+        # Build groupby fields
+        groupby_fields = [
+            f"{field.name}:{freq}" if field.name in grouped_date_fields else field.name
+            for field in self.groupby_field_ids
+        ]
+        read_group_args = self.aggregation_field_ids.get_read_group_argument()
+
+        # Fetch data
+        data = model.read_group(domain, read_group_args, groupby_fields, lazy=False, **kwargs)
+
+        # Build columns for the final DataFrame
+        columns = [
+            f"{field.name}:{freq}" if field.name in grouped_date_fields else field.name
+            for field in self.variable_ids
+        ]
+        # Rename map to remove the ":freq" suffix for date/datetime fields
+        rename_map = {
+            f"{field.name}:{freq}": field.name
+            for field in self.variable_ids
+            if field.name in grouped_date_fields
+        }
+
+        return pd.DataFrame(data, columns=pd.Series(columns)).rename(columns=rename_map, inplace=False)
 
     def _preprocess_pipeline(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         This method does some preprocessing on the pipeline that should be done before applying the pipeline.
         Note that most of the preprocessing should be done in the pipeline itself, but some of it is done here because it can't be done in the pipeline.
         """
-        df = self._replace_null_values(df)
+        df = self._preprocess_columns(df)
         return df
     
-    def _replace_null_values(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        This method preprocesses a pipeline created by _get_pipeline to get from an 'odoo' pipeline to a 'sklearn' pipeline.
-        Odoo largely uses False to represent missing values, while sklearn requires NA.
-        """
+    def _preprocess_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        self.ensure_one()
         for variable in self.variable_ids:
+            variable_name = variable.name
+            if variable.ttype == 'many2one':
+                df = self._preprocess_column_many2one(df, variable_name)
             if variable.ttype != 'boolean':
-                df[variable.name] = df[variable.name].replace({False: pd.NA})
+                df = self._preprocess_column_not_bool(df, variable_name)
             if variable.ttype in ['text', 'char', 'html']:
-                df[variable.name] = df[variable.name].replace({'': pd.NA})
+                df = self._preprocess_column_str(df, variable_name)
+        return df
+
+    @api.model
+    def _preprocess_column_many2one(self, df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+        df[column_name] = df.loc[:,column_name].str[0] # many2one fields are tuples in the form of (id, name)
+        return df
+
+    @api.model
+    def _preprocess_column_not_bool(self, df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+        df[column_name] = df.loc[:,column_name].replace({False: pd.NA})
+        return df
+
+    @api.model
+    def _preprocess_column_str(self, df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+        df[column_name] = df.loc[:,column_name].replace({'': pd.NA})
         return df
 
     @api.depends('pipeline')

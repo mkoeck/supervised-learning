@@ -34,6 +34,19 @@
                         <field name="domain" widget="domain" options="{'model': 'model_name', 'in_dialog': True}" invisible="not model_name"/>
                         <field name="dependent_variable_id" options="{'no_create': True, 'no_edit': True}"/>
                         <field name="independent_variable_ids" widget="many2many_tags" options="{'no_create': True, 'no_edit': True}"/>
+                        <field name="is_grouped" widget="boolean_toggle"/>
+                    </group>
+                    <group invisible="not is_grouped">
+                        <field name="groupby_field_ids" widget="many2many_tags" options="{'no_create': True, 'no_edit': True}"/>
+                        <field name="date_group_frequency"/>
+                        <field name="aggregation_field_ids">
+                            <list editable="top">
+                                <field name="field_id"/>
+                                <field name="aggregation_function"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group>
                         <field name="pipeline"/>
                     </group>
                     <notebook>
