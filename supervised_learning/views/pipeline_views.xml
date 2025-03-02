@@ -24,6 +24,7 @@
                     <button name="create_action" string="Create Contextual Action" class="btn-primary" type="object" invisible="action_id != False"/>
                     <button name="unlink_action" string="Remove Contextual Action" type="object" invisible="not action_id"/>
                     <button name="action_reset_to_draft" string="Reset to draft" type="object" invisible="state == 'draft'"/>
+                    <button name="action_export_dataset" string="Export Dataset" type="object"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
